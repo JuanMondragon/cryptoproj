@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import { CryptoState} from "../../CryptoContext"
 
 import {TrendingCoins} from '../../config/api'
+import AliceCarousel from 'react-alice-carousel';
+import { Link } from 'react-router-dom';
 
 
 
@@ -14,15 +16,30 @@ const useStyles = makeStyles((theme)=> ({
         height:"50%",
         display:"flex",
         alignItems:"center",
+    },
+    carouselItem: {
+      display:"flex",
+      flexDirection:"column",
+      alignItems:"center",
+      cursor:"pointer",
+      textTransform:"uppercase",
+      color:"white",
     }
 
-}))
+}));
+
+
+/// function for our numbers with commas to convert 
+export function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+ (?!\d))/g, ",")
+}
 const Carousel = () => {
-    const [trending, setTrending] = useState([])
+    const [trending, setTrending] = useState([]);
+    const { currency, symbol } = CryptoState ();
 
 const classes =useStyles();
 
-const { currency } = CryptoState ();
+
 
 
 /// fetch api using axios install axios if you havent yet///
@@ -39,10 +56,75 @@ console.log(trending)
 
 useEffect (() => {
   fetchTrendingCoins();
-}, [currency])
+}, [currency]);
+/// in span create a OR statement to make the font change color from green for profit to red for a loss.
+const items = trending.map((coin) => {
+  let profit = coin.price_change_percentage_24h >= 0
+  return (
+    <Link className={classes.carouselItem} to={`/coins/${coin.id}`}
+    >
+    <img
+    src={coin?.image}
+    alt={coin.name}
+    
+     
+    style={{height:"80px", marginBottom: 10}}
+    
+    
+    />
+    
+
+    <span>
+      {coin?.symbol}
+      &nbsp;
+
+      <span
+      
+      style= {{
+        color: profit > 0 ? "rgb(14,203,129" : "red",
+        fontWeight: 500,
+
+      }}
+      >
+        {profit && "+"} {coin?.price_change_percentage_24h?.toFixed(2)}
+
+      </span>
+    </span>
+
+
+    <span style ={{fontSize: 22, fontWeight:500}}>
+      {symbol}{numberWithCommas(coin?.current_price.toFixed(2))}
+
+    </span>
+    </Link>
+  );
+});
+
+const responsive = {
+  0: {
+    items: 2,
+  },
+  512: {
+    items: 4,
+  },
+};
 
   return (
-    <div className={classes.carousel}>Carousel</div>
+    <div className={classes.carousel}>
+      <AliceCarousel
+
+      mouseTracking
+      infinite
+      
+      autoPlayInterval={1000}
+      animationDuration={1500}
+      disableDotsControls
+      disableButtonsControls
+      responsive={responsive}
+      autoPlay
+      items={items}
+      />
+    </div>
   )
 }
 
